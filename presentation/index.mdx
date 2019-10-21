@@ -1,4 +1,4 @@
-import { Cite, Notes } from 'spectacle'
+import { Cite, Notes, Appear } from 'spectacle'
 
 import { DarkSlide, CodeSlide } from './slides'
 
@@ -15,12 +15,12 @@ import { DarkSlide, CodeSlide } from './slides'
 - joke about accent
 - elevator pitch
 - what are they?
-- strawman example
+- contrived example
 - realistic example
 - how to escape them
 - when to focus on them
 
-<Notes>You know what I love?</Notes>
+<Notes>... You know what I love?</Notes>
 
 ---
 
@@ -28,12 +28,19 @@ talking about implementation details
 
 ## 🧡
 
+<Appear>
+  <div>
+    <ul>
+      <li>Which database? UI Framework? State Management?</li>
+      <li>Modal? Hidden inputs? Forcefully open in a new tab?</li>
+    </ul>
+  </div>
+</Appear>
+
 <Notes>
-Talking about the database to use, or the ui framework, or the way to do state management...
+Has APPEAR
 
-Challenging the design with the engineers, do we need an overlay, should these inputs start as hidden, does this flow really need three screens...
-
-You know what I hate?
+... You know what I hate?
 
 </Notes>
 
@@ -57,19 +64,110 @@ But when you write tests that are too coupled to the implementation details, you
 
 ---
 
+## Problem
+
+- You solve problems using code
+- You want to be confident your code solves them forever
+- You want your code to be easy to improve
+
+---
+
+## Solution
+
+- You write tests 🎉
+- You are confident your code solves the problems it's currently solving forever more ✅
+- But **every time** your tests are **too coupled to implentation details**, you make your code **harder** to improve 😱
+
+---
+
+export default CodeSlide
+
+```typescript
+const onlineFriends = allUsers
+  .filter(({ id }) => user.friendIds.includes(id))
+  .filter(({ online }) => online)
+```
+
+---
+
+export default CodeSlide
+
+```typescript
+const getOnlineFriends = (allUsers: User[]) =>
+  allUsers.filter(({ online, id }) => online && user.friendIds.includes(id))
+```
+
+---
+
+Error: expected filter to be called twice
+
+---
+
+export default CodeSlide
+
+```typescript
+it('only returns online friends', () => {
+  const onlineFriends = getOnlineFriends(allUsers)
+  expect(Array.prototype.filter).toBeCalledTimes(2) // 🤪
+
+  expect(onlineFriends).toEqual([
+    // ...
+  ])
+})
+```
+
+<Notes>
+  Wait a minute? Has anybody EVER done this? The answer is yes. But this is the
+  contrived example.
+</Notes>
+
+---
+
+export default CodeSlide
+
+```typescript
+const allUsers = knex.select('*').from<User>('users')
+const onlineFriends = getOnlineFriends(allUsers)
+```
+
+---
+
+export default CodeSlide
+
+```typescript
+const onlineFriends = knex
+  .select('*')
+  .from<User>('users')
+  .whereIn('id', user.friendIds)
+```
+
+---
+
+Error: `.where` is not a function
+
+---
+
+export default CodeSlide
+
+```typescript
+const user = userStore.getUserWithFriends('not-that-talk')
+```
+
+---
+
 ### What are implementation details?
 
 ---
 
+Let's say we've got this design:
+
+---
+
+Even the form is an implementation detail!
+
+---
+
 ## Goal: Allow users to pick a username
-
----
-
-filter mock
-
----
-
-redux example
 
 ---
 
@@ -79,7 +177,30 @@ show the typeof the component
 
 ---
 
+There are frameworks that make testing implementation details too easy
+
+---
+
+Enzyme example
+
+---
+
+There are frameworks that help with avoiding implementation details
+
+- Cypress
+- Testing Library
+
+---
+
+that promotes good testing practices
+
+---
+
 testing library refactor
+
+---
+
+mocking fetch...
 
 ---
 
@@ -95,16 +216,6 @@ testing library render overwrite
 
 ---
 
-> Example Quote
+> You can do anything, given infinite time
 
-<Cite>Author</Cite>
-
----
-
-export default CodeSlide
-
-```typescript
-const SuperCoolComponent = () => (
-  <p>code slide works in markdown too whaaaaat</p>
-)
-```
+<Cite>Johnny Magrippis</Cite>
