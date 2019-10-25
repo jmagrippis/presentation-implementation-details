@@ -22,12 +22,16 @@ export const Form = ({ className }) => {
         onChange={({ currentTarget }) => {
           setUsername(currentTarget.value)
         }}
+        error={!username}
         endAdornment={
           <InputAdornment position="end">
             {username ? (
-              <CheckCircleOutline style={{ color: '#02C39A' }} />
+              <CheckCircleOutline
+                style={{ color: '#02C39A' }}
+                titleAccess="username is valid"
+              />
             ) : (
-              <ErrorOutline color="error" />
+              <ErrorOutline color="error" titleAccess="username is not valid" />
             )}
           </InputAdornment>
         }

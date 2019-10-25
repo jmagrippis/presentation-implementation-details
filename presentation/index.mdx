@@ -15,9 +15,9 @@ import { GuessTheType } from './GuessTheType'
 
 - joke about accent
 - elevator pitch
-- what are they?
 - contrived example
 - realistic example
+- what even are they?
 - how to escape them
 - when to focus on them
 
@@ -32,8 +32,12 @@ talking about implementation details
 <Appear>
   <div>
     <ul>
-      <li>Which database? UI Framework? State Management?</li>
-      <li>Modal? Hidden inputs? Forcefully open in a new tab?</li>
+      <li>
+        Which database? UI Framework? State Management?
+      </li>
+      <li>
+        Modal? Hidden inputs? Forcefully open in a new tab?
+      </li>
     </ul>
   </div>
 </Appear>
@@ -47,7 +51,7 @@ Has APPEAR
 
 ---
 
-being forced to listen to people talk about implentation details
+listening to people talk about implentation details
 
 ## 😑
 
@@ -68,13 +72,9 @@ testing implementation details
 
 <Notes>
 
-This is an engineering only pain.
+This is an engineering only pain, but his is a mostly engineering conference so we'll be focusing on it.
 
-You are an engineer so you want to solve problems.
-
-You want to be confident you've solved them forever and make it easier to improve in the future. So you write tests!
-
-But when you write tests that are too coupled to the implementation details, you sacrifice the "make it easier to improve" part for the confidence it currently works.
+How do we even get to a place where we test implementation details?
 
 </Notes>
 
@@ -99,9 +99,13 @@ But when you write tests that are too coupled to the implementation details, you
 export default CodeSlide
 
 ```typescript
-const onlineFriends = allUsers
-  .filter(({ id }) => user.friendIds.includes(id))
-  .filter(({ online }) => online)
+const getOnlineFriends = (
+  friendIds: User,
+  allUsers: User[]
+) =>
+  allUsers
+    .filter(({ id }) => friendIds.includes(id))
+    .filter(({ online }) => online)
 ```
 
 ---
@@ -109,13 +113,18 @@ const onlineFriends = allUsers
 export default CodeSlide
 
 ```typescript
-const getOnlineFriends = (allUsers: User[]) =>
-  allUsers.filter(({ online, id }) => online && user.friendIds.includes(id))
+const getOnlineFriends = (
+  friendIds: User,
+  allUsers: User[]
+) =>
+  allUsers.filter(
+    ({ online, id }) => online && friendIds.includes(id)
+  )
 ```
 
 ---
 
-Error: expected filter to be called twice
+Error: expected `filter` to be called twice
 
 ---
 
@@ -123,7 +132,7 @@ export default CodeSlide
 
 ```typescript
 it('only returns online friends', () => {
-  const onlineFriends = getOnlineFriends(allUsers)
+  const onlineFriends = getOnlineFriends(user, allUsers)
   expect(Array.prototype.filter).toBeCalledTimes(2) // 🤪
 
   expect(onlineFriends).toEqual([
@@ -133,8 +142,8 @@ it('only returns online friends', () => {
 ```
 
 <Notes>
-  Wait a minute? Has anybody EVER done this? The answer is yes. But this is the
-  contrived example.
+  Wait a minute? Has anybody EVER done this? The answer is
+  yes. But this is the contrived example.
 </Notes>
 
 ---
@@ -143,7 +152,7 @@ export default CodeSlide
 
 ```typescript
 const allUsers = knex.select('*').from<User>('users')
-const onlineFriends = getOnlineFriends(allUsers)
+const onlineFriends = getOnlineFriends(user, allUsers)
 ```
 
 ---
@@ -151,15 +160,27 @@ const onlineFriends = getOnlineFriends(allUsers)
 export default CodeSlide
 
 ```typescript
-const onlineFriends = knex
+const friends = knex
   .select('*')
   .from<User>('users')
   .whereIn('id', user.friendIds)
+  .where('online', true)
 ```
 
 ---
 
-Error: `.where` is not a function
+Error: `.whereIn` is not a function
+
+---
+
+export default CodeSlide
+
+```typescript
+const mockKnex = {}
+mockKnex.select = jest.fn(() => mockKnex)
+mockKnex.from = jest.fn(() => mockKnex)
+jest.mock('knex', () => mockKnex)
+```
 
 ---
 
@@ -187,6 +208,10 @@ Even the form is an implementation detail!
 
 ---
 
+## Goal: Allow users to be identifiable without using their real names
+
+---
+
 can you tell which uses hooks?
 
 <GuessTheType />
@@ -201,26 +226,99 @@ There are frameworks that make testing implementation details too easy
 
 ---
 
-Enzyme example
+export default CodeSlide
+
+```typescript
+const component = shallow(<ChangeUsername />)
+component.setState({ isValid: false })
+
+expect(input.prop('success')).toBe(false)
+expect(input.prop('error')).toBe(true)
+
+component.setState({ isValid: true })
+const input = component.find(Input)
+
+expect(input.prop('success')).toBe(true)
+expect(input.prop('error')).toBe(false)
+```
 
 ---
 
-There are frameworks that help with avoiding implementation details
-
-- Cypress
-- Testing Library
+There are frameworks that help you avoid implementation details
 
 ---
 
-that promotes good testing practices
+![cypress](https://www.valentinog.com/blog/wp-content/uploads/2017/11/end-to-end-testing-cypress-create-article.gif)
+
+cypress.io
 
 ---
 
-testing library refactor
+![testing-libary](https://i.ibb.co/fr7nJyS/testing-library.png)
+
+testing-library.com 🐙
 
 ---
 
-mocking fetch...
+export default CodeSlide
+
+```typescript
+const { getByLabelText, getByText } = render(
+  <ChangeUsername />
+)
+const input = getByLabelText('Username')
+
+// user inputs a short username
+userEvent.click(input)
+userEvent.type(input, 'Pop')
+userEvent.tab()
+
+expect(getByText('that is too short')).toBeTruthy()
+
+// user inputs a valid username
+userEvent.click(input)
+userEvent.type(input, 'PopCultureReference')
+userEvent.tab()
+
+expect(getByText(/claim it/)).toBeTruthy()
+```
+
+---
+
+export default CodeSlide
+
+```typescript
+const { getByLabelText, getByText } = render(
+  <ChangeUsername />
+)
+const input = getByLabelText('Username')
+
+// user inputs a "taken" username
+userEvent.click(input)
+userEvent.type(input, 'jmagrippis')
+userEvent.tab()
+
+expect(getByText(/checking availability/)).toBeTruthy()
+expect(await findByText(/not available/).toBeTruthy()
+
+// user inputs an available username
+userEvent.click(input)
+userEvent.type(input, 'notjmagrippis')
+userEvent.tab()
+
+expect(await findByText(/claim it/).toBeTruthy()
+```
+
+---
+
+export default CodeSlide
+
+```typescript
+import fetchMock from 'fetch-mock'
+fetchMock
+  .get('/users/jmagrippis', 200)
+  .get('/users/notjmagrippis', 404)
+```
 
 ---
 
@@ -232,12 +330,37 @@ testing library render overwrite
 
 ---
 
-![datboi](https://pbs.twimg.com/media/CkjFUyTXEAEysBY.jpg)
+## Implementation Details
+
+- Can delight or frustrate your users... if they get there
+- Can delight or frustrate your team... if you do iterate
+
+---
+
+![starbucks](https://www.geek.com/wp-content/uploads/2019/05/Starbucks-GoT-Coffee-Cup-5619-625x352.jpg)
+
+---
+
+## Implementation Details
+
+- Be aware of them... in silence
+- Do get into them in private, specialist to specialist
+- After you have an idea of the high level goals
+- As little as possible in your tests
+
+---
+
+## Implementation Details
+
+- This presenation was written in `mdx`
+- Using Spectacle from Formidable Labs
+- Hosted on Netlify
+- Example on Code Sandbox
 
 ---
 
 # Thanks!
 
-> "You can do anything, given infinite time"
+### 🎤 Questions? 🎤
 
-<Cite>Johnny Magrippis</Cite>
+<Cite>@jmagrippis</Cite>
