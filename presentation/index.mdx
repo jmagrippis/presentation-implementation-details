@@ -58,7 +58,11 @@ listening to people talk about implentation details
 <Notes>
 Sucks to be you guys I guess!
 
-No, nobody's here against their will, hopefully! What I mean is in meetings, even architecture meetings, you should be reraining from indulging into going too far in the weeds.
+Let's say you have an engineering meeting between two teams, same company two different products...
+
+They have to work together to show their respective conversion stats in the same dashboard.
+
+Don't let that meeting devolve to two people talking about Rabbit MQ or Server-side rendering! Everyone should be working together and figuring out the necessary parts and who's gonna work on what. Some UI -> they UI will need to be fed some data -> that data will be extracted from a service -> that service needs to talk to BigQuery
 
 ... You know what I hate?
 
@@ -92,7 +96,7 @@ How do we even get to a place where we test implementation details?
 
 - You write tests 🎉
 - You are confident your code solves the problems it's currently solving forever more ✅
-- But **every time** your tests are **too coupled to implentation details**, you make your code **harder** to improve 😱
+- But **every time** your tests are **too coupled to implementation details**, you make your code **harder** to improve 😱
 
 ---
 
@@ -184,6 +188,10 @@ jest.mock('knex', () => mockKnex)
 
 ---
 
+![gotem](https://www.dictionary.com/e/wp-content/uploads/2018/03/atw.jpg)
+
+---
+
 export default CodeSlide
 
 ```typescript
@@ -197,6 +205,8 @@ const user = userStore.getUserWithFriends('not-that-talk')
 ---
 
 Let's say we've got this design:
+
+![design](https://lvivity.com/wp-content/uploads/2018/10/mobile-forms.jpg)
 
 ---
 
@@ -212,13 +222,23 @@ Even the form is an implementation detail!
 
 ---
 
-can you tell which uses hooks?
+can you tell which uses React hooks?
 
 <GuessTheType />
 
 ---
 
+export default CodeSlide
+
+```typescript
+typeof class OldSchool {} === typeof function NewSchool() {}
+```
+
 > `typeof` doesn't discriminate, why should your tests?
+
+---
+
+One set of tests errors, one passes
 
 ---
 
@@ -252,11 +272,19 @@ There are frameworks that help you avoid implementation details
 
 cypress.io
 
+<Notes>
+  Great! Slow if you really were to BDD everything still
+  canot do everything the browser can, like input type slide
+  Still using mocha / chai But testing library...
+</Notes>
+
 ---
 
 ![testing-libary](https://i.ibb.co/fr7nJyS/testing-library.png)
 
 testing-library.com 🐙
+
+<Notes>Initially I dismissed due to the tagline</Notes>
 
 ---
 
@@ -322,11 +350,32 @@ fetchMock
 
 ---
 
-GraphQL refactor?
+export default CodeSlide
+
+```typescript
+export function render(ui, { mocks } = {}) {
+  const Wrapper = ({ children }) => (
+    <ApolloMockProvider mocks={mocks}>
+      {children}
+    </ApolloMockProvider>
+  )
+
+  return {
+    ...render(ui, { wrapper: Wrapper }),
+  }
+}
+```
 
 ---
 
-testing library render overwrite
+export default CodeSlide
+
+```typescript
+const { getByLabelText, getByText } = render(
+  <ChangeUsername />,
+  { mocks }
+)
+```
 
 ---
 

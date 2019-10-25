@@ -22,13 +22,17 @@ import {
 } from 'spectacle'
 
 const _Heading = (size) => {
-  const component = ({ children }) => <Heading size={size}>{children}</Heading>
+  const component = ({ children }) => (
+    <Heading size={size}>{children}</Heading>
+  )
   component.propTypes = { children: PropTypes.node }
   return component
 }
 
 const _S = (type) => {
-  const component = ({ children }) => <S type={type}>{children}</S>
+  const component = ({ children }) => (
+    <S type={type}>{children}</S>
+  )
   component.propTypes = { children: PropTypes.node }
   return component
 }
@@ -42,10 +46,17 @@ const _CombineBlockQuote = ({ children }) => (
 _CombineBlockQuote.propTypes = { children: PropTypes.node }
 
 const _CodePane = ({ children, language }) => (
-  <CodePane theme="external" lang="javascript" source={children} />
+  <CodePane
+    theme="external"
+    lang="javascript"
+    source={children}
+  />
 )
 
-_CodePane.propTypes = { code: PropTypes.string, language: PropTypes.string }
+_CodePane.propTypes = {
+  code: PropTypes.string,
+  language: PropTypes.string,
+}
 
 export default {
   a: Link,

@@ -9,13 +9,17 @@ import theme, { darkComponents } from './theme'
 
 export const DefaultSlide = ({ children, ...rest }) => (
   <Slide {...rest}>
-    <MDXProvider components={darkComponents}>{children}</MDXProvider>
+    <MDXProvider components={darkComponents}>
+      {children}
+    </MDXProvider>
   </Slide>
 )
 
 export const DarkSlide = ({ children, ...rest }) => (
   <Slide bgColor="black" {...rest}>
-    <MDXProvider components={darkComponents}>{children}</MDXProvider>
+    <MDXProvider components={darkComponents}>
+      {children}
+    </MDXProvider>
   </Slide>
 )
 
@@ -23,6 +27,8 @@ export const DarkSlide = ({ children, ...rest }) => (
 
 export const CodeSlide = ({ children, ...rest }) => (
   <Slide bgColor="#1d1f21" {...rest}>
-    <MDXProvider components={components}>{children}</MDXProvider>
+    <MDXProvider components={components}>
+      {children}
+    </MDXProvider>
   </Slide>
 )
