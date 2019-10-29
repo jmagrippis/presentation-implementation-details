@@ -10,6 +10,8 @@ import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline'
 import ErrorOutline from '@material-ui/icons/ErrorOutline'
 import styled from 'styled-components'
 
+const isValid = (username) => username.length > 3
+
 export const Form = ({ className }) => {
   const [username, setUsername] = useState('')
 
@@ -25,13 +27,16 @@ export const Form = ({ className }) => {
         error={!username}
         endAdornment={
           <InputAdornment position="end">
-            {username ? (
+            {isValid(username) ? (
               <CheckCircleOutline
                 style={{ color: '#02C39A' }}
                 titleAccess="username is valid"
               />
             ) : (
-              <ErrorOutline color="error" titleAccess="username is not valid" />
+              <ErrorOutline
+                color="error"
+                titleAccess="username is not valid"
+              />
             )}
           </InputAdornment>
         }

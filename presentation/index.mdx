@@ -1,6 +1,6 @@
 import { Cite, Notes, Appear } from 'spectacle'
 
-import { DarkSlide, CodeSlide } from './slides'
+import { DarkSlide, CodeSlide, ErrorSlide } from './slides'
 import { GuessTheType } from './GuessTheType'
 
 ## the time and place for
@@ -14,12 +14,12 @@ import { GuessTheType } from './GuessTheType'
 ### Implementation Details
 
 - joke about accent
-- elevator pitch
+- framing
 - contrived example
 - realistic example
 - what even are they?
-- how to escape them
-- when to focus on them
+- how to avoid them when testing
+- when to focus on them when delivering
 
 <Notes>... You know what I love?</Notes>
 
@@ -42,12 +42,13 @@ talking about implementation details
   </div>
 </Appear>
 
-<Notes>
-Has APPEAR
+<Notes>Has APPEAR</Notes>
 
-... You know what I dislike?
+---
 
-</Notes>
+![genius billionaire](http://giphygifs.s3.amazonaws.com/media/fRtaYXfsfBlcY/giphy.gif)
+
+<Notes>... You know what I dislike?</Notes>
 
 ---
 
@@ -56,13 +57,53 @@ listening to people talk about implentation details
 ## 😑
 
 <Notes>
-Sucks to be you guys I guess!
+Sucks to be you I guess!
 
-Let's say you have an engineering meeting between two teams, same company two different products...
+Let's say you have an engineering meeting between two teams, they make two different products in your company... One generates impressions for your users, the other conversions.
 
-They have to work together to show their respective conversion stats in the same dashboard.
+They have to work together to show their respective metrics in the same dashboard.
 
-Don't let that meeting devolve to two people talking about Rabbit MQ or Server-side rendering! Everyone should be working together and figuring out the necessary parts and who's gonna work on what. Some UI -> they UI will need to be fed some data -> that data will be extracted from a service -> that service needs to talk to BigQuery
+Don't let that meeting devolve to two people talking about Rabbit MQ or Server-side rendering!
+
+Everyone should be working together and figuring out the necessary parts and who's gonna work on what.
+
+Some UI -> they UI will need to be fed some data -> that data will be queried from a service
+
+that service will need to talk to what? One team stores the conversions in Postgres, the other stores the impressions in BigQuery...
+
+</Notes>
+
+---
+
+if you were using a `bson` column...
+
+![zip it](https://media.giphy.com/media/StExRwBu6p1ok/giphy.gif)
+
+<Notes>
+  "the one rule of BigQuery is do not query BigQuery"
+
+What exactly you're doing now isn't important for that meeting. We're engineers, we've queried databases before, we'll figure it out. Stay on the high level.
+
+An important thing to uncover instead would be something like "Oh. We have no way to get the impression as we haven't implemented tracking"
+
+That's much more important than your mastery of database schemas. Going into implementation details at that point is indulging yourself.
+
+</Notes>
+
+---
+
+we kinda forgot about metrics
+
+![kinda forgot](https://i.kym-cdn.com/entries/icons/original/000/029/651/sdbdcefw1jw21.jpg)
+
+<Notes>
+  You might as well making jokes about Game of Thrones. Maybe one would be fine but such meetings are so easy to derail;
+
+But it is indulging yourself. You wouldn't want the outcome of the meeting to be "they botched the last season".
+
+You wouldn't want the outcome of the meeting to be "Postgres is awesome, Mongo is terrible"
+
+The outcome of the meeting should be "we know what we're gonna do next"
 
 ... You know what I hate?
 
@@ -76,9 +117,16 @@ testing implementation details
 
 <Notes>
 
-This is an engineering only pain, but his is a mostly engineering conference so we'll be focusing on it.
+This is an engineering conference so we will be going in deeper in looking at literally writing tests which test the inmplementation details,
+but don't get me wrong, I hate al forms of this.
 
-How do we even get to a place where we test implementation details?
+Imagine if you were told you need to test that the button is red 100% of the time.
+
+Easy to do... but why? Wouldn't you rather test click-throughs? Conversions?
+
+It might sound silly but believe me in the tests that cover our code, we do often do something similar.
+
+So, how do we even get to a place where we test implementation details?
 
 </Notes>
 
@@ -90,6 +138,16 @@ How do we even get to a place where we test implementation details?
 - You want to be confident your code solves them forever
 - You want your code to be easy to improve
 
+<Notes>
+
+love to solve problems, paid to
+
+lazy engineer as all great engineers, so when you solve problems you a guarantee they're solved forever
+
+the code you wrote last month is terrible, the code you're about to write is genius.
+
+</Notes>
+
 ---
 
 ## Solution
@@ -97,6 +155,16 @@ How do we even get to a place where we test implementation details?
 - You write tests 🎉
 - You are confident your code solves the problems it's currently solving forever more ✅
 - But **every time** your tests are **too coupled to implementation details**, you make your code **harder** to improve 😱
+
+<Notes>
+
+Let's say you're joining a new team that is working on a chatbot product.
+
+You decide to do some code archeology before your first big meeting
+
+You find this.
+
+</Notes>
 
 ---
 
@@ -112,6 +180,13 @@ const getOnlineFriends = (
     .filter(({ online }) => online)
 ```
 
+<Notes>
+
+You're pretty sure that in javascript this means you're traversing an array twice. You don't know if it's actually optimised out by some compiler magic,
+but you're confident you can do just one `filter` instead of two here.
+
+</Notes>
+
 ---
 
 export default CodeSlide
@@ -126,9 +201,19 @@ const getOnlineFriends = (
   )
 ```
 
+<Notes>
+
+So you do it and are thinking about benchmarking if anything is noticeably faster, but you see some red.
+
+</Notes>
+
 ---
 
-Error: expected `filter` to be called twice
+export default ErrorSlide
+
+Error: expected `filter`
+
+to be called twice
 
 ---
 
@@ -148,6 +233,11 @@ it('only returns online friends', () => {
 <Notes>
   Wait a minute? Has anybody EVER done this? The answer is
   yes. But this is the contrived example.
+
+You put things back as you found them and look at where the method is called.
+
+And you find something huge
+
 </Notes>
 
 ---
@@ -159,21 +249,36 @@ const allUsers = knex.select('*').from<User>('users')
 const onlineFriends = getOnlineFriends(user, allUsers)
 ```
 
+<Notes>
+  We're literally getting all the users in the database! They're never used elsewhere, all we need is the online friends.
+
+So never mind looping once or twice, we can loop zero times and get exactly what we want straight from the db.
+
+</Notes>
+
 ---
 
 export default CodeSlide
 
 ```typescript
-const friends = knex
+const onlineFriends = knex
   .select('*')
   .from<User>('users')
   .whereIn('id', user.friendIds)
   .where('online', true)
 ```
 
+<Notes>
+  so you add some fancy where closes to your little db
+  helper and are ready to celebrate for the performance
+  gainz. Right?
+</Notes>
+
 ---
 
-Error: `.whereIn` is not a function
+export default ErrorSlide
+
+Error: `whereIn` is not a function
 
 ---
 
@@ -186,9 +291,25 @@ mockKnex.from = jest.fn(() => mockKnex)
 jest.mock('knex', () => mockKnex)
 ```
 
+<Notes>
+  May I get a hands up, who's mocked their database adapter
+  before?
+</Notes>
+
 ---
 
-![gotem](https://www.dictionary.com/e/wp-content/uploads/2018/03/atw.jpg)
+### 👊🏼
+
+![gotem](https://upload.wikimedia.org/wikipedia/en/f/ff/SuccessKid.jpg)
+
+<Notes>
+  I'll count this as a success.
+
+What we have is "resilient to refactoring and value adds".
+
+There are ways around it, with stores and interfaces and typescript...
+
+</Notes>
 
 ---
 
@@ -198,27 +319,75 @@ export default CodeSlide
 const user = userStore.getUserWithFriends('not-that-talk')
 ```
 
----
+<Notes>
+  But this is not that talk. This is the talk on Implementation Details.
 
-### What are implementation details?
+So let's zoom back out and try to define them. What even are implementation details?
 
----
-
-Let's say we've got this design:
-
-![design](https://lvivity.com/wp-content/uploads/2018/10/mobile-forms.jpg)
+</Notes>
 
 ---
 
-Even the form is an implementation detail!
+### What are
+
+### implementation details?
 
 ---
 
-## Goal: Allow users to pick a username
+Initial
+
+![design-1](https://user-images.githubusercontent.com/3502800/67776982-0554fd00-fa59-11e9-81a5-33dfd087297b.png)
+
+Error - Too short
+
+![design-5](https://user-images.githubusercontent.com/3502800/67777194-477e3e80-fa59-11e9-972f-cdaa567cfbc6.png)
+
+Success
+
+![design-6](https://user-images.githubusercontent.com/3502800/67777465-afcd2000-fa59-11e9-8478-a094bc23946b.png)
+
+<Notes>
+  What are implementation details here?
+
+The hover state on the button. Whether it's enabled while the form is invalid. Whether validation happens on blur.
+
+Where we store the usernames as user type them.
+
+Where we store them as users claim them...
+
+But you know what?
+
+</Notes>
 
 ---
 
-## Goal: Allow users to be identifiable without using their real names
+the form itself is an implementation detail
+
+![mindblown](https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif)
+
+---
+
+## Goal:
+
+## Allow users to pick a username
+
+---
+
+## Goal:
+
+## Allow users to be identifiable without using their real names
+
+<Notes>
+  It is our job as engineers to understand the user goal
+  just as much as it is to deliver it.
+
+So let's say you've accepted this is the user story to deliver and you're
+delivering it.
+
+You experimented with two prototypes, both of them using React. One of them manages
+state using old school React class state, the other using React's new hotness, hooks.
+
+</Notes>
 
 ---
 
@@ -228,17 +397,18 @@ can you tell which uses React hooks?
 
 ---
 
-export default CodeSlide
-
 ```typescript
 typeof class OldSchool {} === typeof function NewSchool() {}
 ```
 
-> `typeof` doesn't discriminate, why should your tests?
+> `typeof` doesn't discriminate,
 
----
+> should your tests?
 
-One set of tests errors, one passes
+<Notes>
+  There are ways to test this that would "survive" a
+  refactor from class state to hooks. In most frameworks.
+</Notes>
 
 ---
 
@@ -262,9 +432,48 @@ expect(input.prop('success')).toBe(true)
 expect(input.prop('error')).toBe(false)
 ```
 
+<Notes>
+  What does prop success even mean? Nothing to the browser.
+  Nothing to the user.
+
+This is written with the help of Enzyme by airbnb: And I'm not dissing it itself,
+You can write more meaningful tests with it, and it and airbnb have helped javascript
+mature so much. More than I have that's for sure.
+
+</Notes>
+
 ---
 
 There are frameworks that help you avoid implementation details
+
+---
+
+![testing-libary](https://i.ibb.co/fr7nJyS/testing-library.png)
+
+testing-library.com 🐙
+
+<Notes>Initially I dismissed due to the tagline.
+
+But now I'm doing talk about how frameworks CAN help you avoid testing
+implementation details, so Kent got me this time!
+
+When I finally did have enough with enzyme and was rendering everything using react's own Renderer,
+a colleague told me that's pretty much what Testing Library is doing; only better with nice cleanup operations
+and handy matchers.
+
+</Notes>
+
+---
+
+![order-of-preference](https://user-images.githubusercontent.com/3502800/67783107-a942a680-fa61-11e9-9978-337ffee1f9c6.png)
+
+<Notes>
+  These queries are written in order of preference according to having your tests resemble the way your software is used:
+  so you'd want to be telling your QA put your name in the field with the label "Username". testids are there, but they are dead last;
+
+still ahead of using classnames though
+
+ </Notes>
 
 ---
 
@@ -274,17 +483,11 @@ cypress.io
 
 <Notes>
   Great! Slow if you really were to BDD everything still
-  canot do everything the browser can, like input type slide
-  Still using mocha / chai But testing library...
+  cannot do everything the browser can, like input type
+
+Still using mocha / chai...
+
 </Notes>
-
----
-
-![testing-libary](https://i.ibb.co/fr7nJyS/testing-library.png)
-
-testing-library.com 🐙
-
-<Notes>Initially I dismissed due to the tagline</Notes>
 
 ---
 
@@ -308,8 +511,22 @@ userEvent.click(input)
 userEvent.type(input, 'PopCultureReference')
 userEvent.tab()
 
-expect(getByText(/claim it/)).toBeTruthy()
+expect(getByText(/claim/i)).toBeTruthy()
 ```
+
+---
+
+Checking availability
+
+![design-4](https://user-images.githubusercontent.com/3502800/67777246-5ebd2c00-fa59-11e9-8952-f6e68c3b249e.png)
+
+Error - Claimed
+
+![design-3](https://user-images.githubusercontent.com/3502800/67776985-05ed9380-fa59-11e9-9321-9606d619b8d9.png)
+
+Success
+
+![design-2](https://user-images.githubusercontent.com/3502800/67776983-05ed9380-fa59-11e9-87e8-ae40642601fa.png)
 
 ---
 
@@ -334,7 +551,7 @@ userEvent.click(input)
 userEvent.type(input, 'notjmagrippis')
 userEvent.tab()
 
-expect(await findByText(/claim it/).toBeTruthy()
+expect(await findByText(/claim/i).toBeTruthy()
 ```
 
 ---
@@ -348,6 +565,47 @@ fetchMock
   .get('/users/notjmagrippis', 404)
 ```
 
+<Notes>
+
+First time the user exists so the username is taken,
+second time there is no such user so the username is available
+
+Before you get upset...
+
+</Notes>
+
+---
+
+![comeon](https://media.giphy.com/media/MwOuiiTfWfWgM/giphy.gif)
+
+<Notes>
+
+This is not the "mocks are bad" talk. And mocks maintained and used by many people
+are better than mocks maintained and used just by you. It's not inherently bad
+to bring in an in memory postgres for your tests. I'm not saying e2e test all the things.
+
+</Notes>
+
+---
+
+There is a time and place for
+
+## Implementation details
+
+<Notes>
+
+Do discuss with your fellow experts
+
+But still do discuss but do avoid it from your tests as much as possible.
+
+So let's have one last set of code slides.
+
+Imagine you want to refactor into using GraphQL to check whether the username is taken.
+
+Maybe you could write your own `render` method for tests that augments the "real one" and abstracts away some mocking setup.
+
+</Notes>
+
 ---
 
 export default CodeSlide
@@ -355,9 +613,9 @@ export default CodeSlide
 ```typescript
 export function render(ui, { mocks } = {}) {
   const Wrapper = ({ children }) => (
-    <ApolloMockProvider mocks={mocks}>
+    <MockedProvider mocks={mocks} addTypename={false}>
       {children}
-    </ApolloMockProvider>
+    </MockedProvider>
   )
 
   return {
@@ -379,10 +637,34 @@ const { getByLabelText, getByText } = render(
 
 ---
 
+export default CodeSlide
+
+```typescript
+const { getByLabelText, getByText } = render(
+  <ChangeUsername />,
+  { apolloMocks, fetchMocks }
+)
+```
+
+---
+
 ## Implementation Details
 
-- Can delight or frustrate your users... if they get there
-- Can delight or frustrate your team... if you do iterate
+- Can **delight** or **frustrate** your users and your team...
+- ... if users see them. If the team iterates
+
+<Notes>
+  Our little form could have the best UX in the world, would it matter if nobody uses it?
+
+Even if the same user changing their username twice sets crashes their browser, it wouldn't matter if you have evidence to suggest nobody would do it.
+
+I hope I managed to convey the spirit of the talk...
+
+Fulfill those user journeys and iterate fast, by knowing the time and place for implementation details.
+
+The talk wasn't "only do MVPs"
+
+</Notes>
 
 ---
 
@@ -396,15 +678,6 @@ const { getByLabelText, getByText } = render(
 - Do get into them in private, specialist to specialist
 - After you have an idea of the high level goals
 - As little as possible in your tests
-
----
-
-## Implementation Details
-
-- This presenation was written in `mdx`
-- Using Spectacle from Formidable Labs
-- Hosted on Netlify
-- Example on Code Sandbox
 
 ---
 

@@ -45,32 +45,92 @@ const components = {
 export const darkComponents = {
   ...components,
   h2: ({ children }) => (
-    <Heading size={2} textColor={theme.screen.colors.secondary}>
+    <Heading
+      size={2}
+      textColor={theme.screen.colors.secondary}
+    >
       {children}
     </Heading>
   ),
   h3: ({ children }) => (
-    <Heading size={3} textColor={theme.screen.colors.secondary}>
+    <Heading
+      size={3}
+      textColor={theme.screen.colors.secondary}
+    >
       {children}
     </Heading>
   ),
   h4: ({ children }) => (
-    <Heading size={4} textColor={theme.screen.colors.secondary}>
+    <Heading
+      size={4}
+      textColor={theme.screen.colors.secondary}
+    >
       {children}
     </Heading>
   ),
   h5: ({ children }) => (
-    <Heading size={5} textColor={theme.screen.colors.secondary}>
+    <Heading
+      size={5}
+      textColor={theme.screen.colors.secondary}
+    >
       {children}
     </Heading>
   ),
   h6: ({ children }) => (
-    <Heading size={6} textColor={theme.screen.colors.secondary}>
+    <Heading
+      size={6}
+      textColor={theme.screen.colors.secondary}
+    >
       {children}
     </Heading>
   ),
   p: ({ children }) => (
-    <Text textColor={theme.screen.colors.secondary}>{children}</Text>
+    <Text textColor={theme.screen.colors.secondary}>
+      {children}
+    </Text>
+  ),
+}
+
+const errorRed = '#C03221'
+
+export const errorComponents = {
+  ...components,
+  h1: ({ children }) => (
+    <Heading size={2} textColor={errorRed}>
+      {children}
+    </Heading>
+  ),
+  h2: ({ children }) => (
+    <Heading size={2} textColor={errorRed}>
+      {children}
+    </Heading>
+  ),
+  h3: ({ children }) => (
+    <Heading size={3} textColor={errorRed}>
+      {children}
+    </Heading>
+  ),
+  h4: ({ children }) => (
+    <Heading size={4} textColor={errorRed}>
+      {children}
+    </Heading>
+  ),
+  h5: ({ children }) => (
+    <Heading size={5} textColor={errorRed}>
+      {children}
+    </Heading>
+  ),
+  h6: ({ children }) => (
+    <Heading size={6} textColor={errorRed}>
+      {children}
+    </Heading>
+  ),
+  p: ({ children }) => (
+    <Text textColor={errorRed} textFont="Fira Code">
+      <strong style={{ fontSize: '4rem' }}>
+        {children}
+      </strong>
+    </Text>
   ),
 }
 

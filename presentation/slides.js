@@ -3,13 +3,24 @@ import { Slide, Text, Heading } from 'spectacle'
 import { MDXProvider } from '@mdx-js/tag'
 
 import components from './components'
-import theme, { darkComponents } from './theme'
+import theme, {
+  darkComponents,
+  errorComponents,
+} from './theme'
 
 // DEFAULT LAYOUT
 
 export const DefaultSlide = ({ children, ...rest }) => (
   <Slide {...rest}>
     <MDXProvider components={darkComponents}>
+      {children}
+    </MDXProvider>
+  </Slide>
+)
+
+export const ErrorSlide = ({ children, ...rest }) => (
+  <Slide {...rest} bgColor="#545E75">
+    <MDXProvider components={errorComponents}>
       {children}
     </MDXProvider>
   </Slide>
